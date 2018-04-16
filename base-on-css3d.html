@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no"/>
+    <title>CSS3d</title>
+    <style>
+        .box {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            perspective: 150px;
+            -webkit-perspective: 150px;
+            -webkit-transform-style:preserve-3d;
+            transform-style: preserve-3d;
+            transform-origin: center center 150px;
+            overflow: hidden;
+            /*transform: rotateX(45deg);*/
+
+        }
+        img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 300px;
+            height: 300px;
+            padding: 100px;
+            -webkit-transform-origin: center center;
+            transform-origin: center center;
+            border: none;
+            outline: none;
+        }
+        img {
+            transform-origin: center center 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box" style="transform: rotateX(0deg) rotateY(0deg)">
+        <img src="./img/pz.jpg" style="transform: rotateX(0deg) rotateY(0deg)">
+        <img src="./img/nx.jpg" style="transform: rotateX(0deg) rotateY(90deg)">
+        <img src="./img/px.jpg" style="transform: rotateX(0deg) rotateY(-90deg)">
+        <img src="./img/py.jpg" style="transform: rotateX(-90deg) rotateY(0deg)">
+        <img src="./img/ny.jpg" style="transform: rotateX(90deg) rotateY(0deg)">
+        <img src="./img/nz.jpg" style="transform: rotateX(0deg) rotateY(180deg)">
+    </div>
+    <script>
+        var isControlled = false;
+        var lastX, lastY;
+        var boxWidth;
+        var transX = 0, transY = 0;
+        var box = document.querySelector('.box');
+        var imgs = [
+            document.querySelector('img:nth-child(1)'),
+            document.querySelector('img:nth-child(2)'),
+            document.querySelector('img:nth-child(3)'),
+            document.querySelector('img:nth-child(6)'),
+        ];
+        var imgsUpDown = [
+            document.querySelector('img:nth-child(4)'),
+            document.querySelector('img:nth-child(5)'),
+        ];
+        var currRotate = [
+            {
+                x: 0,
+                y: 0,
+            },
+            {
+                x: 0,
+                y: 90,
+            },
+            {
+                x: 0,
+                y: -90,
+            },
+            // {
+            //     x: -90,
+            //     y: 0,
+            // },
+            // {
+            //     x: 90,
+            //     y: 0,
+            // },
+            {
+                x: 0,
+                y: 180,
+            },
+        ];
+        var currRotateUpDown = [
+            {
+                x: -90,
+                z: 0,
+            },
+            {
+                x: 90,
+                z: 0,
+            },
+        ];
+        box.addEventListener('mousedown', ontouchstart);
+        box.addEventListener('mousemove', ontouchmove);
+        box.addEventListener('mouseup', ontouchend);
+        window.onload = function () {
+            boxWidth = parseInt(window.getComputedStyle(box).width.replace('px', ''));
+        };
+        function ontouchstart(event) {
+            event.preventDefault();
+            console.log(event);
+            if (!isControlled) {
+                isControlled = true;
+                lastX = event.clientX;
+                lastY = event.clientY;
+            }
+        }
+        function ontouchmove(event) {
+            event.preventDefault();
+            if (isControlled) {
+                console.log(event);
+                var dX = (event.clientX - lastX) / boxWidth * 180;
+                var dY = (event.clientY - lastY) / boxWidth * 180;
+                for (let rotate of currRotate) {
+                    rotate.x -= dY;
+                    rotate.y -= dX;
+                }
+                currRotateUpDown[0].x -= dY;
+                currRotateUpDown[0].z -= dX;
+                currRotateUpDown[1].x -= dY;
+                currRotateUpDown[1].z += dX;
+                imgs.forEach((img, index) => {
+                    img.style.transform = `rotateX(${currRotate[index].x}deg) rotateY(${currRotate[index].y}deg)`;
+                });
+                imgsUpDown.forEach((img, index) => {
+                    img.style.transform = `rotateX(${currRotateUpDown[index].x}deg) rotateZ(${currRotateUpDown[index].z}deg)`
+                });
+                lastX = event.clientX;
+                lastY = event.clientY;
+            }
+        }
+        function ontouchend(event) {
+            event.preventDefault();
+            isControlled = false;
+            console.log(event);
+        }
+    </script>
+</body>
+</html>
