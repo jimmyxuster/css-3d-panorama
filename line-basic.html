@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LineBasic</title>
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
+    <script src="js/three.js"></script>
+    <script>
+        var camera, width, height;
+        function initCamera() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+            camera.position.x = 0;
+            camera.position.y = 1000;
+            camera.position.z = 0;
+            camera.up.x = 0;
+            camera.up.y = 0;
+            camera.up.z = 1;
+            camera.lookAt(0, 0, 0);
+        }
+        var renderer;
+        function initRenderer() {
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+            });
+            renderer.setSize(width, height);
+            renderer.setClearColor(0xffffff, 1.0);
+            document.body.appendChild(renderer.domElement);
+        }
+        var light;
+        function initLight() {
+            light = new THREE.DirectionalLight(0xFF0000, 1.0, 0);
+            light.position.set(100, 100, 200);
+            scene.add(light);
+        }
+        var scene;
+        function initScene() {
+            scene = new THREE.Scene();
+        }
+        function drawLine() {
+            var geometry = new THREE.Geometry();
+            var material = new THREE.LineBasicMaterial({vertexColors: true});
+            var line1 = new THREE.Vector3(-100, 0, 100);
+            var line2 = new THREE.Vector3(100, 0, -100);
+            var color1 = new THREE.Color(0x444444);
+            var color2 = new THREE.Color(0xFF0000);
+            geometry.vertices.push(line1);
+            geometry.vertices.push(line2);
+            geometry.colors.push(color1, color2);
+            var line = new THREE.Line(geometry, material);
+            scene.add(line);
+        }
+        function threeStart() {
+            initCamera();
+            initRenderer();
+            initScene();
+            initLight();
+            drawLine();
+            renderer.clear();
+            renderer.render(scene, camera);
+        }
+    </script>
+</head>
+<body onload="threeStart()">
+
+</body>
+</html>

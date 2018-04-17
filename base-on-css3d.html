@@ -9,11 +9,11 @@
             position: relative;
             width: 500px;
             height: 500px;
-            perspective: 150px;
-            -webkit-perspective: 150px;
+            perspective: 250px;
+            -webkit-perspective: 250px;
             -webkit-transform-style:preserve-3d;
             transform-style: preserve-3d;
-            transform-origin: center center 150px;
+            transform-origin: center center;
             overflow: hidden;
             /*transform: rotateX(45deg);*/
 
@@ -22,27 +22,27 @@
             position: absolute;
             left: 0;
             top: 0;
-            width: 300px;
-            height: 300px;
-            padding: 100px;
+            width: 500px;
+            height: 500px;
+            /*padding: 100px;*/
             -webkit-transform-origin: center center;
             transform-origin: center center;
             border: none;
             outline: none;
         }
         img {
-            transform-origin: center center 150px;
+            transform-origin: center center;
         }
     </style>
 </head>
 <body>
     <div class="box" style="transform: rotateX(0deg) rotateY(0deg)">
-        <img src="./img/pz.jpg" style="transform: rotateX(0deg) rotateY(0deg)">
-        <img src="./img/nx.jpg" style="transform: rotateX(0deg) rotateY(90deg)">
-        <img src="./img/px.jpg" style="transform: rotateX(0deg) rotateY(-90deg)">
-        <img src="./img/py.jpg" style="transform: rotateX(-90deg) rotateY(0deg)">
-        <img src="./img/ny.jpg" style="transform: rotateX(90deg) rotateY(0deg)">
-        <img src="./img/nz.jpg" style="transform: rotateX(0deg) rotateY(180deg)">
+        <img src="./img/pz.jpg" style="transform: rotateX(0deg) rotateY(0deg) translateZ(-250px)">
+        <img src="./img/nx.jpg" style="transform: rotateX(0deg) rotateY(90deg) translateZ(-250px)">
+        <img src="./img/px.jpg" style="transform: rotateX(0deg) rotateY(-90deg) translateZ(-250px)">
+        <img src="./img/py.jpg" style="transform: rotateX(-90deg) rotateY(0deg) translateZ(-250px)">
+        <img src="./img/ny.jpg" style="transform: rotateX(90deg) rotateY(0deg) translateZ(-250px)">
+        <img src="./img/nz.jpg" style="transform: rotateX(0deg) rotateY(180deg) translateZ(-250px)">
     </div>
     <script>
         var isControlled = false;
@@ -99,6 +99,9 @@
         box.addEventListener('mousedown', ontouchstart);
         box.addEventListener('mousemove', ontouchmove);
         box.addEventListener('mouseup', ontouchend);
+        box.addEventListener('touchstart', ontouchstart);
+        box.addEventListener('touchmove', ontouchmove);
+        box.addEventListener('touchend', ontouchend);
         window.onload = function () {
             boxWidth = parseInt(window.getComputedStyle(box).width.replace('px', ''));
         };
@@ -107,16 +110,18 @@
             console.log(event);
             if (!isControlled) {
                 isControlled = true;
-                lastX = event.clientX;
-                lastY = event.clientY;
+                lastX = event.clientX || event.touches[0].clientX;
+                lastY = event.clientY || event.touches[0].clientY;
             }
         }
         function ontouchmove(event) {
             event.preventDefault();
             if (isControlled) {
                 console.log(event);
-                var dX = (event.clientX - lastX) / boxWidth * 180;
-                var dY = (event.clientY - lastY) / boxWidth * 180;
+                var clientX = event.clientX || event.touches[0].clientX;
+                var clientY = event.clientY || event.touches[0].clientY;
+                var dX = (clientX - lastX) / boxWidth * 180;
+                var dY = (clientY - lastY) / boxWidth * 180;
                 for (let rotate of currRotate) {
                     rotate.x -= dY;
                     rotate.y -= dX;
@@ -126,13 +131,13 @@
                 currRotateUpDown[1].x -= dY;
                 currRotateUpDown[1].z += dX;
                 imgs.forEach((img, index) => {
-                    img.style.transform = `rotateX(${currRotate[index].x}deg) rotateY(${currRotate[index].y}deg)`;
+                    img.style.transform = `rotateX(${currRotate[index].x}deg) rotateY(${currRotate[index].y}deg) translateZ(-250px)`;
                 });
                 imgsUpDown.forEach((img, index) => {
-                    img.style.transform = `rotateX(${currRotateUpDown[index].x}deg) rotateZ(${currRotateUpDown[index].z}deg)`
+                    img.style.transform = `rotateX(${currRotateUpDown[index].x}deg) rotateZ(${currRotateUpDown[index].z}deg) translateZ(-250px)`
                 });
-                lastX = event.clientX;
-                lastY = event.clientY;
+                lastX = clientX;
+                lastY = clientY;
             }
         }
         function ontouchend(event) {
