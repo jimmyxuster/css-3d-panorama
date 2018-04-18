@@ -1,50 +1,152 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset=utf-8>
-    <title>threejs Starter Demo</title>
-    <style>
-        body { margin: 0; }
-        canvas { width: 100%; height: 100% }
+    <meta charset="UTF-8">
+    <title>ThreeJs</title>
+    <script src="js/three.js"></script>
+    <style type="text/css">
+        div#canvas-frame {
+            border: none;
+            width: 100%;
+            height: 600px;
+            background-color: #EEEEEE;
+        }
+
     </style>
+    <script>
+        var renderer;
+        function initThree() {
+            width = document.getElementById('canvas-frame').clientWidth;
+            height = document.getElementById('canvas-frame').clientHeight;
+            renderer = new THREE.WebGLRenderer({
+                antialias : true
+            });
+            renderer.setSize(width, height);
+            var frame = document.getElementById('canvas-frame');
+            frame.appendChild(renderer.domElement);
+            frame.addEventListener('mousedown', touchstart, false);
+            frame.addEventListener('mousemove', touchmove, false);
+            frame.addEventListener('mouseup', touchend, false);
+            frame.addEventListener('touchstart', touchstart, false);
+            frame.addEventListener('touchmove', touchmove, false);
+            frame.addEventListener('touchend', touchend, false);
+            renderer.setClearColor(0xFFFFFF, 1.0);
+        }
+
+        var camera;
+        var lookVectorX = 0, lookVectorY = 0, lookVectorZ = -1;
+        function initCamera() {
+            camera = new THREE.PerspectiveCamera(120, width / height, 1, 10000);
+            camera.position.x = 0;
+            camera.position.y = 0;
+            camera.position.z = 0;
+            camera.up.x = 0;
+            camera.up.y = 1;
+            camera.up.z = 0;
+            camera.lookAt(lookVectorX, lookVectorY, lookVectorZ);
+        }
+
+        var scene;
+        function initScene() {
+            scene = new THREE.Scene();
+        }
+
+        var light;
+        function initLight() {
+            light = new THREE.AmbientLight(0xffffff, 1);
+            light.position.set(0, 0, 500);
+            scene.add(light);
+        }
+
+        var cube;
+        function drawBox() {
+            var geometry = new THREE.BoxGeometry(500, 500, 500, 1, 1, 3);
+            geometry.scale( - 1, 1, 1 );
+            var textureLoader = new THREE.TextureLoader();
+            var materialPz = new THREE.MeshBasicMaterial({map: textureLoader.load('./img/pz.jpg')});
+            var materialPx = new THREE.MeshBasicMaterial({map: textureLoader.load('./img/px.jpg')});
+            var materialPy = new THREE.MeshBasicMaterial({map: textureLoader.load('./img/py.jpg')});
+            var materialNz = new THREE.MeshBasicMaterial({map: textureLoader.load('./img/nz.jpg')});
+            var materialNx = new THREE.MeshBasicMaterial({map: textureLoader.load('./img/nx.jpg')});
+            var materialNy = new THREE.MeshBasicMaterial({map: textureLoader.load('./img/ny.jpg')});
+            var mats = [materialPx, materialNx, materialPy, materialNy, materialPz, materialNz];// 右 左 前 下 上 后
+            cube = new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(mats));
+            cube.position.x = 0;
+            cube.position.y = 0;
+            cube.position.z = 0;
+            // cube.rotation.y = -45 * Math.PI / 180;
+            // cube.rotation.x = -30 * Math.PI / 180;
+            scene.add(cube);
+        }
+
+        function threeStart() {
+            initThree();
+            initCamera();
+            initScene();
+            initLight();
+            drawBox();
+            renderer.clear();
+            renderer.render(scene, camera);
+            window.addEventListener('resize', onWindowResize, false);
+            animate();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        }
+
+        function animate() {
+            requestAnimationFrame( animate );
+            camera.lookAt(lookVectorX, lookVectorY, lookVectorZ);
+            renderer.render( scene, camera );
+        }
+
+        var isControlled = false;
+        var lastX, lastY;
+        function touchstart(event) {
+            if (!isControlled) {
+                // console.log(event);
+                isControlled = true;
+                lastX = getPointerX(event);
+                lastY = getPointerY(event);
+            }
+        }
+        var horAngle = 0;
+        var verAngle = 0;
+        function touchmove(event) {
+            if (isControlled) {
+                // console.log(event);
+                var dx = getPointerX(event) - lastX;
+                var dy = getPointerY(event) - lastY;
+                var dRadiusHoriz = dx / width * 180;
+                var dRadiusVertical = dy / height * 180;
+                horAngle -= dRadiusHoriz * Math.PI / 180;
+                verAngle += dRadiusVertical * Math.PI / 180;
+                cube.rotation.y = horAngle;
+                cube.rotation.x = verAngle;
+                lastX = getPointerX(event);
+                lastY = getPointerY(event);
+            }
+        }
+        function touchend(event) {
+            if (isControlled) {
+                // console.log(event);
+                isControlled = false;
+            }
+        }
+
+        function getPointerX(event) {
+            return event.clientX || event.touches[0].clientX || 0;
+        }
+        function getPointerY(event) {
+            return event.clientY || event.touches[0].clientY || 0;
+        }
+    </script>
 </head>
-<body>
-<script src="js/three.js"></script>
-<script>
-    function animate() {
-        requestAnimationFrame(animate);
-        // cube.rotation.x += 0.1;
-        // cube.rotation.y += 0.1;
-        renderer.render(scene, camera);
-    }
-</script>
-<script>
-    // initialize
-    var scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xcce0ff);
-    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100);
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    document.body.appendChild(renderer.domElement);
 
-    // add a mesh(cube) to scene
-    var geometry = new THREE.BoxGeometry(1, 1, 1);
-    var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-    var cube = new THREE.Mesh(geometry, material);
-    // scene.add(cube);
-
-    // add a line to scene
-    var lineMaterial = new THREE.LineBasicMaterial({color: 0x0000ff});
-    var lineGeometry = new THREE.Geometry();
-    lineGeometry.vertices.push(new THREE.Vector3(-10, 0, 0));
-    lineGeometry.vertices.push(new THREE.Vector3(0, -10, 0));
-    lineGeometry.vertices.push(new THREE.Vector3(10, 0, 0));
-    var line = new THREE.Line(lineGeometry, lineMaterial);
-    scene.add(line);
-
-    camera.position.z = 20;
-    animate();
-
-</script>
+<body onload="threeStart();">
+<div id="canvas-frame"></div>
 </body>
 </html>
