@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CameraTest</title>
+    <style>
+        html, body, div.container {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            position: relative;
+            left: 0;
+            top: 0;
+            background: #4CAABE;
+            overflow: hidden;
+        }
+
+        video {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            -webkit-transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+</div>
+<script src="js/libs/dat.gui.min.js"></script>
+<script>
+    var Options = function () {
+        this.preview = false;
+    };
+    var options;
+    var video;
+    function initSize() {
+        if (!video) {
+            return;
+        }
+        var longerSize = Math.max(window.innerWidth, window.innerHeight);
+        if (window.innerWidth > window.innerHeight) {
+            video.style.height = longerSize + 'px';
+        } else {
+            video.style.width = longerSize + 'px';
+        }
+    }
+
+    function init() {
+        var gui = new dat.GUI();
+        options = new Options();
+        gui.add(options, 'preview', false).onChange(toggleCamera);
+        window.addEventListener('resize', initSize, false);
+    }
+
+    function toggleCamera() {
+        console.log('toggle camera');
+        options.preview ? getMedia() : closeMedia();
+    }
+
+    function getMedia() {
+        // use: frameRate: { ideal: 10, max: 15 } for bandwidth saving
+        video = document.createElement('video');
+        initSize();
+        document.querySelector('.container').appendChild(video);
+        var constraints = {
+            video: {facingMode: 'environment'}
+        };
+        if (navigator.mediaDevices.getUserMedia) {
+            //最新的标准API
+            navigator.mediaDevices.getUserMedia(constraints).then(successCb).catch(errorCb);
+        } else if (navigator.webkitGetUserMedia) {
+            //webkit核心浏览器
+            navigator.webkitGetUserMedia(constraints, successCb, errorCb)
+        } else if (navigator.mozGetUserMedia) {
+            //firfox浏览器
+            navigator.mozGetUserMedia(constraints, successCb, errorCb);
+        } else if (navigator.getUserMedia) {
+            //旧版API
+            navigator.getUserMedia(constraints, successCb, errorCb);
+        } else {
+            alert('UserMedia not supported on your browser.');
+        }
+    }
+
+    var localStream;
+
+    function successCb(stream) {
+        console.log(stream);
+        if ('srcObject' in video) {
+            video.srcObject = stream;
+        } else {
+            // avoid using createObjectURL since it is deprecated in newer browsers.
+            let URLCompat = window.URL || window.webkitURL;
+            video.src = URLCompat.createObjectURL(stream);
+        }
+        localStream = stream;
+        video.onloadedmetadata = function () {
+            video.play();
+        };
+    }
+
+    function errorCb(e) {
+        console.log(e);
+        alert('Error occurred when opening camera. Please check hardware compatibility.');
+    }
+
+    function closeMedia() {
+        video.remove();
+        video = null;
+        localStream.getTracks()[0].stop();
+        // document.getElementById('video').srcObject = '';
+    }
+
+    init();
+</script>
+</body>
+</html>
